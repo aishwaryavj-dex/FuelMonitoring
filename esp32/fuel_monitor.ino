@@ -16,7 +16,7 @@
 const char* ssid = "aishu";
 const char* password = "trick@777";
 
-// --- Render server endpoint (REPLACE with your actual Render URL) ---
+// --- Render server endpoint ---
 const char* serverUrl = "https://fuelmonitoring.onrender.com/api/sensor-data";
 
 // --- LCD Setup (I2C address 0x27, 16 columns, 2 rows) ---
@@ -155,9 +155,10 @@ void sendData(int fuel, int corrosion, float temp, float humidity) {
 
   HTTPClient http;
   http.begin(client, serverUrl);
+  http.setTimeout(10000); // 10 second timeout
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Accept", "application/json");
-  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // Follow any redirects
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
   // Build JSON payload safely with ArduinoJson
   StaticJsonDocument<200> doc;

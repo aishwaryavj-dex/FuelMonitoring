@@ -3,17 +3,13 @@ import sqlite3
 import datetime
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from flask_socketio import SocketIO
 
 # Initialize Flask application
 app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)  # Enable CORS for API routes
 
-# Configure secret key for session/socketio
+# Configure secret key
 app.config['SECRET_KEY'] = 'smart_fuel_secret_129837'
-
-# Initialize Socket.IO
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 # Database path configuration
 DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db')
@@ -54,7 +50,6 @@ def receive_sensor_data():
     """
     Accepts incoming sensor readings from ESP32 or curl client.
     Validates data contract fields and stores them in SQLite.
-    Broadcasts the new reading to all connected frontend clients via Socket.IO.
     """
     data = request.get_json()
     if not data:
@@ -104,9 +99,6 @@ def receive_sensor_data():
         "temp": temp,
         "humidity": humidity
     }
-
-    # Broadcast via WebSockets
-    socketio.emit('new_reading', new_reading)
 
     return jsonify({"status": "success", "data": new_reading}), 200
 

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Fuel Corrosion Analyzer</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Icons CDN (Lucide Icons) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Hidden SVG for global linear gradient definitions used in SVG gauges -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="fuel-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#00f5d4" />
+        <stop offset="30%" stop-color="#f5a623" />
+        <stop offset="100%" stop-color="#ff4d4d" />
+      </linearGradient>
+      <linearGradient id="corrosion-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#00e676" />
+        <stop offset="60%" stop-color="#f5a623" />
+        <stop offset="100%" stop-color="#ff4d4d" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="dashboard-container">
+    
+    <!-- Header Section -->
+    <header class="dashboard-header">
+      <div class="brand-section">
+        <span class="brand-icon">
+          <i data-lucide="shield-alert" style="width: 28px; height: 28px;"></i>
+        </span>
+        <h1 class="brand-title">
+          <span class="light">Smart Fuel</span> <span class="accent">Corrosion Analyzer</span>
+        </h1>
+      </div>
+      <div id="connection-pill" class="status-pill disconnected">
+        <span class="status-dot"></span>
+        <span id="connection-text">Disconnected — retrying...</span>
+      </div>
+    </header>
+
+    <!-- Alert Banner -->
+    <div id="alert-banner" class="alert-banner">
+      <span class="alert-icon">
+        <i data-lucide="triangle-alert" style="width: 24px; height: 24px;"></i>
+      </span>
+      <span id="alert-message" class="alert-message">Fuel level critically low! (12% remaining)</span>
+    </div>
+
+    <!-- Stat Cards Row -->
+    <section class="stats-grid" aria-label="Sensor Readings">
+      
+      <!-- Fuel Level Card -->
+      <div class="card card-fuel">
+        <div class="card-title">
+          Fuel Level
+          <i data-lucide="fuel" style="width: 16px; height: 16px;"></i>
+        </div>
+        <div class="gauge-container">
+          <svg class="gauge-svg" viewBox="0 0 130 130">
+            <circle class="gauge-bg" cx="65" cy="65" r="54" />
+            <circle id="fuel-gauge-fill" class="gauge-fill" cx="65" cy="65" r="54" />
+          </svg>
+          <div class="gauge-value">
+            <span id="fuel-value" class="gauge-number">--</span>
+            <span class="gauge-unit">%</span>
+          </div>
+        </div>
+        <div id="fuel-status" class="status-label">UNKNOWN</div>
+      </div>
+
+      <!-- Corrosion Card -->
+      <div class="card card-corrosion">
+        <div class="card-title">
+          Corrosion Accumulation
+          <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
+        </div>
+        <div class="gauge-container">
+          <svg class="gauge-svg" viewBox="0 0 130 130">
+            <circle class="gauge-bg" cx="65" cy="65" r="54" />
+            <circle id="corrosion-gauge-fill" class="gauge-fill" cx="65" cy="65" r="54" />
+          </svg>
+          <div class="gauge-value">
+            <span id="corrosion-value" class="gauge-number">--</span>
+            <span class="gauge-unit">%</span>
+          </div>
+        </div>
+        <div id="corrosion-status" class="status-label">UNKNOWN</div>
+      </div>
+
+      <!-- Temperature Card -->
+      <div class="card card-temp">
+        <div class="card-title">
+          Ambient Temperature
+          <i data-lucide="thermometer" style="width: 16px; height: 16px;"></i>
+        </div>
+        <div class="stat-reading">
+          <span id="temp-value" class="stat-number">--.-</span>
+          <span class="stat-unit">°C</span>
+        </div>
+        <div class="range-container">
+          <div class="range-track">
+            <div id="temp-range-fill" class="range-fill"></div>
+          </div>
+          <div class="range-labels">
+            <span>0°C</span>
+            <span>50°C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Humidity Card -->
+      <div class="card card-humidity">
+        <div class="card-title">
+          Relative Humidity
+          <i data-lucide="droplet" style="width: 16px; height: 16px;"></i>
+        </div>
+        <div class="stat-reading">
+          <span id="humidity-value" class="stat-number">--.-</span>
+          <span class="stat-unit">%</span>
+        </div>
+        <div class="range-container">
+          <div class="range-track">
+            <div id="humidity-range-fill" class="range-fill"></div>
+          </div>
+          <div class="range-labels">
+            <span>0%</span>
+            <span>100%</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Lower Panel Grid -->
+    <div class="lower-panels-grid">
+      
+      <!-- Key-Value Summary Table -->
+      <section class="card" aria-label="Tank Condition Summary">
+        <div class="panel-header">
+          <i data-lucide="clipboard-list" style="width: 18px; height: 18px;"></i>
+          <h2>Tank Condition Summary</h2>
+        </div>
+        <div class="summary-table">
+          <div class="summary-row">
+            <span class="summary-key">Fuel Status</span>
+            <span id="summary-fuel" class="summary-val">--</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-key">Corrosion Status</span>
+            <span id="summary-corrosion" class="summary-val">--</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-key">Ambient Temperature</span>
+            <span id="summary-temp" class="summary-val">--</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-key">Humidity Risk</span>
+            <span id="summary-humidity-risk" class="summary-val">--</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-key">Last Reading</span>
+            <span id="summary-last-time" class="summary-val">--</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Event Logs Section -->
+      <section class="card" aria-label="Event Log">
+        <div class="panel-header">
+          <i data-lucide="terminal" style="width: 18px; height: 18px;"></i>
+          <h2>System Event Log</h2>
+        </div>
+        <div id="event-log-container" class="event-log-container">
+          <!-- Log items injected via JS -->
+          <div class="log-item severity-normal" style="justify-content: center; color: var(--text-muted);">
+            No logs recorded yet.
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Trend Chart Container (Full Width Panel) -->
+    <section class="card chart-panel" aria-label="Historical Trends">
+      <div class="panel-header">
+        <i data-lucide="trending-up" style="width: 18px; height: 18px;"></i>
+        <h2>Historical Level & Corrosion Trends</h2>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="historyChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Socket.IO CDN -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- JS Controller logic -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  
+  <script>
+    // Initialize Lucide Icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

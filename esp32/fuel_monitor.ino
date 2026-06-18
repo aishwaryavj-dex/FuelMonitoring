@@ -17,7 +17,7 @@ const char* ssid = "aishu";
 const char* password = "trick@777";
 
 // --- Vercel server endpoint ---
-const char* serverUrl = "https://fuel-monitoring-sand.vercel.app/api/sensor-data";
+const char* serverUrl = "https://<YOUR_NETLIFY_SITE>.netlify.app/.netlify/functions/api/sensor-data";
 
 // --- LCD Setup (I2C address 0x27, 16 columns, 2 rows) ---
 LiquidCrystal_I2C lcd(0x27, 16, 2);

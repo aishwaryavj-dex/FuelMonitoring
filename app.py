@@ -162,9 +162,5 @@ def get_history():
     readings = [dict(row) for row in rows]
     return jsonify(readings), 200
 
-if __name__ == '__main__':
-    # Vercel provides PORT env var; default to 5000 for local dev
-    port = int(os.getenv('PORT', 5000))
-    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
-    # Run using Flask's built‑in server for local testing; Vercel will use the WSGI app directly.
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+// Netlify Functions entry point – no __main__ block needed.
+// The Flask app will be imported by the Netlify Python wrapper.

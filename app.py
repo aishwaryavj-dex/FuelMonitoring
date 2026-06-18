@@ -163,5 +163,7 @@ def get_history():
     return jsonify(readings), 200
 
 if __name__ == '__main__':
-    # Run the server on 0.0.0.0:5000 for local network access
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    # Railway provides PORT env var; default to 5000 for local dev
+    port = int(os.getenv('PORT', 5000))
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    socketio.run(app, host='0.0.0.0', port=port, debug=debug_mode)

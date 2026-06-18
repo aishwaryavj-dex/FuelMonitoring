@@ -150,13 +150,14 @@ void sendData(int fuel, int corrosion, float temp, float humidity) {
     return;
   }
 
-  // Use a secure client that skips certificate verification
   WiFiClientSecure client;
   client.setInsecure(); // Disable cert validation (ESP32 limitation)
 
   HTTPClient http;
-  http.begin(client, serverUrl); // HTTPS endpoint with insecure client
+  http.begin(client, serverUrl);
   http.addHeader("Content-Type", "application/json");
+  http.addHeader("Accept", "application/json");
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // Follow any redirects
 
   // Build JSON payload safely with ArduinoJson
   StaticJsonDocument<200> doc;
@@ -167,6 +168,7 @@ void sendData(int fuel, int corrosion, float temp, float humidity) {
   String payload;
   serializeJson(doc, payload);
 
+  Serial.println("Sending: " + payload);
   int httpCode = http.POST(payload);
   if (httpCode > 0) {
     Serial.printf("POST %d – %s\n", httpCode, payload.c_str());

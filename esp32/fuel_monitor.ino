@@ -3,6 +3,8 @@
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
 
 // ------------------------------------------------------------
 // Smart Fuel Corrosion Analyzer - ESP32 Dev Module Version
@@ -10,14 +12,12 @@
 // Sends JSON over WiFi (HTTP POST) to your Flask backend
 // ------------------------------------------------------------
 
-// --- WiFi credentials (EDIT THESE) ---
-const char* ssid     = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+// --- WiFi credentials (EDITED) ---
+const char* ssid = "aishu";
+const char* password = "trick@777";
 
-// --- Flask server endpoint (EDIT THIS) ---
-// Find your laptop's local IP with `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-// Flask must be running with host="0.0.0.0" for this to reach it.
-const char* serverUrl = "http://192.168.1.XXX:5000/api/sensor-data";
+// --- Vercel server endpoint ---
+const char* serverUrl = "https://fuel-monitoring-sand.vercel.app/api/sensor-data";
 
 // --- LCD Setup (I2C address 0x27, 16 columns, 2 rows) ---
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -146,22 +146,34 @@ void loop() {
 
 void sendData(int fuel, int corrosion, float temp, float humidity) {
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected, skipping send");
+    Serial.println("WiFi not connected – skipping send");
     return;
   }
 
+  // Use a secure client that skips certificate verification
+  WiFiClientSecure client;
+  client.setInsecure(); // Disable cert validation (ESP32 limitation)
+
   HTTPClient http;
-  http.begin(serverUrl);
+  http.begin(client, serverUrl); // HTTPS endpoint with insecure client
   http.addHeader("Content-Type", "application/json");
 
-  String payload = "{";
-  payload += "\"fuel\":" + String(fuel) + ",";
-  payload += "\"corrosion\":" + String(corrosion) + ",";
-  payload += "\"temp\":" + String(temp, 1) + ",";
-  payload += "\"humidity\":" + String(humidity, 1);
-  payload += "}";
+  // Build JSON payload safely with ArduinoJson
+  StaticJsonDocument<200> doc;
+  doc["fuel"] = fuel;
+  doc["corrosion"] = corrosion;
+  doc["temp"] = temp;
+  doc["humidity"] = humidity;
+  String payload;
+  serializeJson(doc, payload);
 
   int httpCode = http.POST(payload);
-  Serial.printf("POST [%d]: %s\n", httpCode, payload.c_str());
+  if (httpCode > 0) {
+    Serial.printf("POST %d – %s\n", httpCode, payload.c_str());
+    String resp = http.getString();
+    Serial.println("Response: " + resp);
+  } else {
+    Serial.printf("POST failed: %s\n", http.errorToString(httpCode).c_str());
+  }
   http.end();
 }

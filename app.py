@@ -163,7 +163,8 @@ def get_history():
     return jsonify(readings), 200
 
 if __name__ == '__main__':
-    # Railway provides PORT env var; default to 5000 for local dev
+    # Vercel provides PORT env var; default to 5000 for local dev
     port = int(os.getenv('PORT', 5000))
     debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
-    socketio.run(app, host='0.0.0.0', port=port, debug=debug_mode)
+    # Run using Flask's built‑in server for local testing; Vercel will use the WSGI app directly.
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

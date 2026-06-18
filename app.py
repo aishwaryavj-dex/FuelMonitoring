@@ -13,7 +13,7 @@ CORS(app)  # Enable CORS for API routes
 app.config['SECRET_KEY'] = 'smart_fuel_secret_129837'
 
 # Initialize Socket.IO
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 # Database path configuration
 DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'database.db')
